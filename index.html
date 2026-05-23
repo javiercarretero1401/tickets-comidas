@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tickets Comidas</title>
+  <title>Archivo de Tickets</title>
 
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
@@ -11,11 +11,25 @@
 
 <body>
 
-  <h1>Tickets Comidas</h1>
+  <h1>Archivo de Tickets</h1>
+
+  <button class="botonModo" onclick="cambiarModo()">
+    Cambiar vista día / noche
+  </button>
 
   <div class="formulario">
 
-    <label>Tipo de comida:</label>
+    <label>Semana:</label>
+
+    <select id="selectorSemana" onchange="cambiarSemana()"></select>
+
+    <button onclick="crearSemanaActual()">
+      Ir a semana actual
+    </button>
+
+    <h2 id="tituloSemana"></h2>
+
+    <label>Tipo de ticket:</label>
 
     <select id="tipo">
       <option value="Desayuno">Desayuno</option>
@@ -32,23 +46,33 @@
       id="fotoInput"
     >
 
-    <br><br>
+    <div id="previewBox" style="display:none;">
+
+      <h3>Foto antes de guardar</h3>
+
+      <img id="previewFoto">
+
+      <button onclick="eliminarFotoTemporal()">
+        Eliminar foto y hacer otra
+      </button>
+
+    </div>
 
     <button onclick="guardarTicket()">
-      Guardar Ticket
-    </button>
-
-    <button onclick="generarPDF()">
-      Generar PDF Semanal
+      Guardar ticket
     </button>
 
     <p id="mensajeGuardado"></p>
+
+    <button onclick="generarPDF()">
+      Generar PDF de esta semana
+    </button>
 
   </div>
 
   <hr>
 
-  <h2>Tickets guardados</h2>
+  <h2>Tickets de esta semana</h2>
 
   <div id="tickets"></div>
 
