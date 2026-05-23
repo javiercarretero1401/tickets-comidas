@@ -1,88 +1,399 @@
 let tickets = JSON.parse(localStorage.getItem("tickets")) || [];
 
-mostrarTickets();
+let fotoTemporal = "";
 
-function guardarTicket() {
-  const tipo = document.getElementById("tipo").value;
-  const fotoInput = document.getElementById("fotoInput");
+let semanaSeleccionada = obtenerSemanaActual();
 
-  if (!fotoInput.files[0]) {
-    alert("Haz una foto del ticket");
-    return;
-  }
+iniciarApp();
 
-  const archivo = fotoInput.files[0];
-  const reader = new FileReader();
+function iniciarApp() {
 
-  reader.onload = function(e) {
-    const ahora = new Date();
+  prepararCamara();
 
-    const ticket = {
-      tipo: tipo,
-      fecha: ahora.toLocaleDateString(),
-      hora: ahora.toLocaleTimeString(),
-      fechaISO: ahora.toISOString(),
-      imagen: e.target.result
+  crearSemanaActual();
+
+}
+
+function prepararCamara() {
+
+  document.getElementById("fotoInput").addEventListener("change", function() {
+
+    const archivo = this.files[0];
+
+    if (!archivo) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+
+      fotoTemporal = e.target.result;
+
+      document.getElementById("previewFoto").src = fotoTemporal;
+
+      document.getElementById("previewBox").style.display = "block";
+
     };
 
-    tickets.push(ticket);
-    localStorage.setItem("tickets", JSON.stringify(tickets));
+    reader.readAsDataURL(archivo);
 
-    mostrarTickets();
-    fotoInput.value = "";
+  });
 
-    alert("✅ Ticket guardado correctamente");
+}
+
+function obtenerSemanaActual() {
+
+  return obtenerSemanaDeFecha(new Date());
+
+}
+
+function obtenerSemanaDeFecha(fecha) {
+
+  const fechaCopia = new Date(Date.UTC(
+    fecha.getFullYear(),
+    fecha.getMonth(),
+    fecha.getDate()
+  ));
+
+  const dia = fechaCopia.getUTCDay() || 7;
+
+  fechaCopia.setUTCDate(fechaCopia.getUTCDate() + 4 - dia);
+
+  const inicioAno = new Date(Date.UTC(fechaCopia.getUTCFullYear(), 0, 1));
+
+  const numeroSemana = Math.ceil((((fechaCopia - inicioAno) / 86400000) + 1) / 7);
+
+  const ano = fechaCopia.getUTCFullYear();
+
+  return ano + "-S" + String(numeroSemana).padStart(2, "0");
+
+}
+
+function crearSemanaActual() {
+
+  semanaSeleccionada = obtenerSemanaActual();
+
+  actualizarSelectorSemanas();
+
+  mostrarTickets();
+
+}
+
+function actualizarSelectorSemanas() {
+
+  const selector = document.getElementById("selectorSemana");
+
+  const semanas = [...new Set(tickets.map(ticket => ticket.semana))];
+
+  if (!semanas.includes(semanaSeleccionada)) {
+
+    semanas.push(semanaSeleccionada);
+
+  }
+
+  semanas.sort().reverse();
+
+  selector.innerHTML = "";
+
+  semanas.forEach(semana => {
+
+    const option = document.createElement("option");
+
+    option.value = semana;
+
+    option.textContent = "Semana " + semana;
+
+    selector.appendChild(option);
+
+  });
+
+  selector.value = semanaSeleccionada;
+
+  document.getElementById("tituloSemana").textContent =
+    "Semana seleccionada: " + semanaSeleccionada;
+
+}
+
+function cambiarSemana() {
+
+  semanaSeleccionada = document.getElementById("selectorSemana").value;
+
+  mostrarTickets();
+
+}
+
+function eliminarFotoTemporal() {
+
+  fotoTemporal = "";
+
+  document.getElementById("fotoInput").value = "";
+
+  document.getElementById("previewFoto").src = "";
+
+  document.getElementById("previewBox").style.display = "none";
+
+  mostrarMensaje("Foto eliminada. Puedes hacer otra.", "orange");
+
+}
+
+function guardarTicket() {
+
+  const tipo = document.getElementById("tipo").value;
+
+  if (!fotoTemporal) {
+
+    mostrarMensaje("Primero haz una foto del ticket.", "red");
+
+    return;
+
+  }
+
+  const ahora = new Date();
+
+  const ticket = {
+
+    tipo: tipo,
+
+    fecha: ahora.toLocaleDateString(),
+
+    hora: ahora.toLocaleTimeString(),
+
+    fechaISO: ahora.toISOString(),
+
+    semana: semanaSeleccionada,
+
+    imagen: fotoTemporal
+
   };
 
-  reader.readAsDataURL(archivo);
+  tickets.push(ticket);
+
+  guardarDatos();
+
+  fotoTemporal = "";
+
+  document.getElementById("fotoInput").value = "";
+
+  document.getElementById("previewFoto").src = "";
+
+  document.getElementById("previewBox").style.display = "none";
+
+  actualizarSelectorSemanas();
+
+  mostrarTickets();
+
+  mostrarMensaje("✅ Ticket guardado correctamente", "green");
+
+}
+
+function guardarDatos() {
+
+  localStorage.setItem("tickets", JSON.stringify(tickets));
+
+}
+
+function mostrarMensaje(texto, color) {
+
+  const mensaje = document.getElementById("mensajeGuardado");
+
+  mensaje.textContent = texto;
+
+  mensaje.style.color = color;
+
+  mensaje.style.fontWeight = "bold";
+
+  setTimeout(() => {
+
+    mensaje.textContent = "";
+
+  }, 4000);
+
 }
 
 function mostrarTickets() {
+
+  actualizarSelectorSemanas();
+
   const contenedor = document.getElementById("tickets");
+
   contenedor.innerHTML = "";
 
-  [...tickets].reverse().forEach(ticket => {
-    contenedor.innerHTML += `
-      <div class="ticket">
-        <h3>${ticket.tipo}</h3>
-        <p>${ticket.fecha} - ${ticket.hora || ""}</p>
-        <img src="${ticket.imagen}">
-      </div>
-    `;
-  });
-}
-
-function pedirSemana() {
-  const semana = prompt(
-    "Escribe la semana del informe en formato AAAA-MM-DD.\n\nEjemplo: 2026-05-18\n\nPon el lunes de la semana que quieres."
+  const ticketsSemana = tickets.filter(
+    ticket => ticket.semana === semanaSeleccionada
   );
 
-  if (!semana) return null;
+  if (ticketsSemana.length === 0) {
 
-  const fechaInicio = new Date(semana + "T00:00:00");
-  const fechaFin = new Date(fechaInicio);
-  fechaFin.setDate(fechaInicio.getDate() + 7);
+    contenedor.innerHTML =
+      "<p>No hay tickets guardados en esta semana.</p>";
 
-  return { fechaInicio, fechaFin };
+    return;
+
+  }
+
+  const tipos = ["Desayuno", "Almuerzo", "Cena"];
+
+  tipos.forEach(tipo => {
+
+    const ticketsTipo = ticketsSemana.filter(
+      ticket => ticket.tipo === tipo
+    );
+
+    if (ticketsTipo.length === 0) return;
+
+    contenedor.innerHTML += `
+      <h3 class="bloqueTipo">${tipo}</h3>
+    `;
+
+    ticketsTipo.forEach(ticket => {
+
+      const indexReal = tickets.indexOf(ticket);
+
+      contenedor.innerHTML += `
+        <div class="ticket">
+
+          <h3>${ticket.tipo}</h3>
+
+          <p>${ticket.fecha} - ${ticket.hora}</p>
+
+          <img src="${ticket.imagen}">
+
+          <button onclick="eliminarTicket(${indexReal})">
+            Eliminar ticket
+          </button>
+
+        </div>
+      `;
+
+    });
+
+  });
+
+}
+
+function eliminarTicket(index) {
+
+  const confirmar = confirm(
+    "¿Seguro que quieres eliminar este ticket?"
+  );
+
+  if (!confirmar) return;
+
+  tickets.splice(index, 1);
+
+  guardarDatos();
+
+  actualizarSelectorSemanas();
+
+  mostrarTickets();
+
+  mostrarMensaje("Ticket eliminado", "orange");
+
 }
 
 async function generarPDF() {
-  const rango = pedirSemana();
 
-  if (!rango) return;
-
-  const { fechaInicio, fechaFin } = rango;
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-
-  const ticketsSemana = tickets.filter(ticket => {
-    const fechaTicket = new Date(ticket.fechaISO);
-    return fechaTicket >= fechaInicio && fechaTicket < fechaFin;
-  });
+  const ticketsSemana = tickets.filter(
+    ticket => ticket.semana === semanaSeleccionada
+  );
 
   if (ticketsSemana.length === 0) {
-    alert("No hay tickets guardados en esa semana");
+
+    mostrarMensaje("No hay tickets en esta semana.", "red");
+
     return;
+
   }
 
-  const tipos = ["Desayuno", "Al
+  const { jsPDF } = window.jspdf;
+
+  const pdf = new jsPDF();
+
+  const tipos = ["Desayuno", "Almuerzo", "Cena"];
+
+  let primeraPagina = true;
+
+  tipos.forEach(tipo => {
+
+    const ticketsTipo = ticketsSemana.filter(
+      ticket => ticket.tipo === tipo
+    );
+
+    if (ticketsTipo.length === 0) return;
+
+    if (!primeraPagina) {
+
+      pdf.addPage();
+
+    }
+
+    primeraPagina = false;
+
+    let y = 15;
+
+    let contador = 0;
+
+    pdf.setFontSize(18);
+
+    pdf.text(tipo + " - " + semanaSeleccionada, 10, y);
+
+    y += 10;
+
+    ticketsTipo.forEach(ticket => {
+
+      if (contador === 6) {
+
+        pdf.addPage();
+
+        y = 15;
+
+        contador = 0;
+
+        pdf.setFontSize(18);
+
+        pdf.text(tipo + " - " + semanaSeleccionada, 10, y);
+
+        y += 10;
+
+      }
+
+      pdf.setFontSize(10);
+
+      pdf.text(ticket.fecha + " - " + ticket.hora, 10, y);
+
+      y += 5;
+
+      pdf.addImage(ticket.imagen, "JPEG", 10, y, 55, 35);
+
+      y += 43;
+
+      contador++;
+
+    });
+
+  });
+
+  pdf.save("tickets-" + semanaSeleccionada + ".pdf");
+
+}
+
+function cambiarModo() {
+
+  document.body.classList.toggle("modo-dia");
+
+  if (document.body.classList.contains("modo-dia")) {
+
+    localStorage.setItem("modo", "dia");
+
+  } else {
+
+    localStorage.setItem("modo", "noche");
+
+  }
+
+}
+
+if (localStorage.getItem("modo") === "dia") {
+
+  document.body.classList.add("modo-dia");
+
+}
