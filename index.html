@@ -2,84 +2,41 @@
 <html lang="es">
 
 <head>
-
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Archivo de Tickets</title>
-
-  <link rel="manifest" href="manifest.json">
-
+  <title>Tickets</title>
   <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
 
-  <h1>Archivo de Tickets</h1>
-
-  <div class="modoSwitch" onclick="cambiarModo()">
-
-    <span>🌙</span>
-
-    <div class="switch">
-
-      <div class="circulo"></div>
-
-    </div>
-
-    <span>☀️</span>
-
-  </div>
+  <h1>Tickets</h1>
 
   <div class="formulario">
 
-    <label>Semana:</label>
-
-    <select id="selectorSemana" onchange="cambiarSemana()"></select>
-
-    <button onclick="crearSemanaActual()">
-      Ir a semana actual
-    </button>
-
-    <h2 id="tituloSemana"></h2>
-
-    <label>Tipo de ticket:</label>
+    <label>Tipo</label>
 
     <select id="tipo">
-
-      <option value="Desayuno">
-        Desayuno
-      </option>
-
-      <option value="Almuerzo">
-        Almuerzo
-      </option>
-
-      <option value="Cena">
-        Cena
-      </option>
-
+      <option>Desayuno</option>
+      <option>Almuerzo</option>
+      <option>Cena</option>
     </select>
 
     <br><br>
 
     <input
       type="file"
+      id="fotoInput"
       accept="image/*"
       capture="environment"
-      id="fotoInput"
     >
 
     <div id="previewBox" style="display:none;">
 
-      <h3>Foto antes de guardar</h3>
-
       <img id="previewFoto">
 
       <button onclick="eliminarFotoTemporal()">
-        Eliminar foto y hacer otra
+        Eliminar foto
       </button>
 
     </div>
@@ -88,23 +45,15 @@
       Guardar ticket
     </button>
 
-    <p id="mensajeGuardado"></p>
-
-    <button onclick="generarPDF()">
-      Generar PDF de esta semana
-    </button>
-
   </div>
 
   <hr>
 
   <h2 id="zonaTickets">
-    Tickets de esta semana
+    Tickets guardados
   </h2>
 
   <div id="tickets"></div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script src="app.js"></script>
 
