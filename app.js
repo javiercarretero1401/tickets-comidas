@@ -2,23 +2,15 @@ let tickets = JSON.parse(localStorage.getItem("tickets")) || [];
 
 let fotoTemporal = "";
 
-let semanaSeleccionada = obtenerSemanaActual();
+let semanaSeleccionada = "Semana actual";
 
-document.addEventListener("DOMContentLoaded", () => {
-
-  prepararCamara();
-
-  crearSemanaActual();
-
-});
-
-function prepararCamara() {
+document.addEventListener("DOMContentLoaded", function () {
 
   const fotoInput = document.getElementById("fotoInput");
 
-  fotoInput.addEventListener("change", function () {
+  fotoInput.addEventListener("change", function (event) {
 
-    const archivo = this.files[0];
+    const archivo = event.target.files[0];
 
     if (!archivo) return;
 
@@ -38,116 +30,15 @@ function prepararCamara() {
 
   });
 
-}
-
-function obtenerSemanaActual() {
-
-  return obtenerSemanaDeFecha(new Date());
-
-}
-
-function obtenerSemanaDeFecha(fecha) {
-
-  const fechaCopia = new Date(Date.UTC(
-    fecha.getFullYear(),
-    fecha.getMonth(),
-    fecha.getDate()
-  ));
-
-  const dia = fechaCopia.getUTCDay() || 7;
-
-  fechaCopia.setUTCDate(fechaCopia.getUTCDate() + 4 - dia);
-
-  const inicioAno = new Date(Date.UTC(
-    fechaCopia.getUTCFullYear(),
-    0,
-    1
-  ));
-
-  const numeroSemana = Math.ceil(
-    ((((fechaCopia - inicioAno) / 86400000) + 1) / 7)
-  );
-
-  const ano = fechaCopia.getUTCFullYear();
-
-  return ano + "-S" + String(numeroSemana).padStart(2, "0");
-
-}
-
-function crearSemanaActual() {
-
-  semanaSeleccionada = obtenerSemanaActual();
-
-  actualizarSelectorSemanas();
-
   mostrarTickets();
 
-}
-
-function actualizarSelectorSemanas() {
-
-  const selector = document.getElementById("selectorSemana");
-
-  const semanas = [...new Set(tickets.map(ticket => ticket.semana))];
-
-  if (!semanas.includes(semanaSeleccionada)) {
-
-    semanas.push(semanaSeleccionada);
-
-  }
-
-  semanas.sort().reverse();
-
-  selector.innerHTML = "";
-
-  semanas.forEach(semana => {
-
-    const option = document.createElement("option");
-
-    option.value = semana;
-
-    option.textContent = "Semana " + semana;
-
-    selector.appendChild(option);
-
-  });
-
-  selector.value = semanaSeleccionada;
-
-  document.getElementById("tituloSemana").textContent =
-    "Semana seleccionada: " + semanaSeleccionada;
-
-}
-
-function cambiarSemana() {
-
-  semanaSeleccionada =
-    document.getElementById("selectorSemana").value;
-
-  mostrarTickets();
-
-}
-
-function eliminarFotoTemporal() {
-
-  fotoTemporal = "";
-
-  document.getElementById("fotoInput").value = "";
-
-  document.getElementById("previewFoto").src = "";
-
-  document.getElementById("previewBox").style.display = "none";
-
-}
+});
 
 function guardarTicket() {
 
-  if (!fotoTemporal) {
+  if (fotoTemporal === "") {
 
-    mostrarMensaje(
-      "Primero haz una foto del ticket",
-      "#ff4444"
-    );
+    alert("Haz una foto primero");
 
     return;
 
@@ -165,150 +56,68 @@ function guardarTicket() {
 
     hora: ahora.toLocaleTimeString(),
 
-    fechaISO: ahora.toISOString(),
+    imagen: fotoTemporal,
 
-    semana: semanaSeleccionada,
-
-    imagen: fotoTemporal
+    semana: semanaSeleccionada
 
   };
 
   tickets.push(ticket);
 
-  localStorage.setItem(
-    "tickets",
-    JSON.stringify(tickets)
-  );
+  localStorage.setItem("tickets", JSON.stringify(tickets));
 
   fotoTemporal = "";
-
-  document.getElementById("fotoInput").value = "";
 
   document.getElementById("previewFoto").src = "";
 
   document.getElementById("previewBox").style.display = "none";
 
-  mostrarMensaje(
-    "✅ Ticket guardado correctamente",
-    "#00c851"
-  );
+  document.getElementById("fotoInput").value = "";
 
-  actualizarSelectorSemanas();
+  alert("✅ Ticket guardado correctamente");
 
   mostrarTickets();
 
-  setTimeout(() => {
-
-    document.getElementById("zonaTickets")
-      .scrollIntoView({
-        behavior: "smooth"
-      });
-
-  }, 300);
-
-}
-
-function mostrarMensaje(texto, color) {
-
-  let aviso = document.getElementById("avisoGrande");
-
-  if (!aviso) {
-
-    aviso = document.createElement("div");
-
-    aviso.id = "avisoGrande";
-
-    document.body.prepend(aviso);
-
-  }
-
-  aviso.innerHTML = texto;
-
-  aviso.style.background = color;
-
-  aviso.style.color = "white";
-
-  aviso.style.padding = "15px";
-
-  aviso.style.borderRadius = "12px";
-
-  aviso.style.marginBottom = "15px";
-
-  aviso.style.fontSize = "18px";
-
-  aviso.style.fontWeight = "bold";
-
-  aviso.style.textAlign = "center";
-
-  setTimeout(() => {
-
-    aviso.remove();
-
-  }, 3000);
+  document.getElementById("zonaTickets").scrollIntoView({
+    behavior: "smooth"
+  });
 
 }
 
 function mostrarTickets() {
 
-  const contenedor =
-    document.getElementById("tickets");
+  const contenedor = document.getElementById("tickets");
 
   contenedor.innerHTML = "";
 
-  const ticketsSemana = tickets.filter(
-    ticket => ticket.semana === semanaSeleccionada
-  );
-
-  if (ticketsSemana.length === 0) {
+  if (tickets.length === 0) {
 
     contenedor.innerHTML =
-      "<p>No hay tickets guardados en esta semana.</p>";
+      "<p>No hay tickets guardados.</p>";
 
     return;
 
   }
 
-  const tipos = [
-    "Desayuno",
-    "Almuerzo",
-    "Cena"
-  ];
-
-  tipos.forEach(tipo => {
-
-    const ticketsTipo = ticketsSemana.filter(
-      ticket => ticket.tipo === tipo
-    );
-
-    if (ticketsTipo.length === 0) return;
+  tickets.forEach(function (ticket, index) {
 
     contenedor.innerHTML += `
-      <h3 class="bloqueTipo">${tipo}</h3>
+
+      <div class="ticket">
+
+        <h3>${ticket.tipo}</h3>
+
+        <p>${ticket.fecha} - ${ticket.hora}</p>
+
+        <img src="${ticket.imagen}">
+
+        <button onclick="eliminarTicket(${index})">
+          Eliminar ticket
+        </button>
+
+      </div>
+
     `;
-
-    ticketsTipo.forEach(ticket => {
-
-      const indexReal = tickets.indexOf(ticket);
-
-      contenedor.innerHTML += `
-
-        <div class="ticket">
-
-          <p>
-            ${ticket.fecha} - ${ticket.hora}
-          </p>
-
-          <img src="${ticket.imagen}">
-
-          <button onclick="eliminarTicket(${indexReal})">
-            Eliminar ticket
-          </button>
-
-        </div>
-
-      `;
-
-    });
 
   });
 
@@ -324,126 +133,27 @@ function eliminarTicket(index) {
 
   tickets.splice(index, 1);
 
-  localStorage.setItem(
-    "tickets",
-    JSON.stringify(tickets)
-  );
+  localStorage.setItem("tickets", JSON.stringify(tickets));
 
   mostrarTickets();
 
 }
 
-async function generarPDF() {
+function eliminarFotoTemporal() {
 
-  const ticketsSemana = tickets.filter(
-    ticket => ticket.semana === semanaSeleccionada
-  );
+  fotoTemporal = "";
 
-  if (ticketsSemana.length === 0) {
+  document.getElementById("previewFoto").src = "";
 
-    mostrarMensaje(
-      "No hay tickets en esta semana",
-      "#ff4444"
-    );
+  document.getElementById("previewBox").style.display = "none";
 
-    return;
+  document.getElementById("fotoInput").value = "";
 
-  }
+}
 
-  const { jsPDF } = window.jspdf;
+function generarPDF() {
 
-  const pdf = new jsPDF();
-
-  const tipos = [
-    "Desayuno",
-    "Almuerzo",
-    "Cena"
-  ];
-
-  let primeraPagina = true;
-
-  tipos.forEach(tipo => {
-
-    const ticketsTipo = ticketsSemana.filter(
-      ticket => ticket.tipo === tipo
-    );
-
-    if (ticketsTipo.length === 0) return;
-
-    if (!primeraPagina) {
-
-      pdf.addPage();
-
-    }
-
-    primeraPagina = false;
-
-    let y = 15;
-
-    let contador = 0;
-
-    pdf.setFontSize(18);
-
-    pdf.text(
-      tipo + " - " + semanaSeleccionada,
-      10,
-      y
-    );
-
-    y += 10;
-
-    ticketsTipo.forEach(ticket => {
-
-      if (contador === 6) {
-
-        pdf.addPage();
-
-        y = 15;
-
-        contador = 0;
-
-        pdf.setFontSize(18);
-
-        pdf.text(
-          tipo + " - " + semanaSeleccionada,
-          10,
-          y
-        );
-
-        y += 10;
-
-      }
-
-      pdf.setFontSize(10);
-
-      pdf.text(
-        ticket.fecha + " - " + ticket.hora,
-        10,
-        y
-      );
-
-      y += 5;
-
-      pdf.addImage(
-        ticket.imagen,
-        "JPEG",
-        10,
-        y,
-        55,
-        35
-      );
-
-      y += 43;
-
-      contador++;
-
-    });
-
-  });
-
-  pdf.save(
-    "tickets-" + semanaSeleccionada + ".pdf"
-  );
+  alert("PDF próximamente");
 
 }
 
@@ -451,22 +161,4 @@ function cambiarModo() {
 
   document.body.classList.toggle("modo-dia");
 
-  if (
-    document.body.classList.contains("modo-dia")
-  ) {
-
-    localStorage.setItem("modo", "dia");
-
-  } else {
-
-    localStorage.setItem("modo", "noche");
-
-  }
-
 }
-
-if (localStorage.getItem("modo") === "dia") {
-
-  document.body.classList.add("modo-dia");
-
-    }
