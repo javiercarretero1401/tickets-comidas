@@ -15,9 +15,13 @@ function guardarTicket() {
   const reader = new FileReader();
 
   reader.onload = function(e) {
+    const ahora = new Date();
+
     const ticket = {
       tipo: tipo,
-      fecha: new Date().toLocaleString(),
+      fecha: ahora.toLocaleDateString(),
+      hora: ahora.toLocaleTimeString(),
+      fechaISO: ahora.toISOString(),
       imagen: e.target.result
     };
 
@@ -27,7 +31,7 @@ function guardarTicket() {
     mostrarTickets();
     fotoInput.value = "";
 
-    alert("Ticket guardado");
+    alert("✅ Ticket guardado correctamente");
   };
 
   reader.readAsDataURL(archivo);
@@ -41,58 +45,44 @@ function mostrarTickets() {
     contenedor.innerHTML += `
       <div class="ticket">
         <h3>${ticket.tipo}</h3>
-        <p>${ticket.fecha}</p>
+        <p>${ticket.fecha} - ${ticket.hora || ""}</p>
         <img src="${ticket.imagen}">
       </div>
     `;
   });
 }
 
+function pedirSemana() {
+  const semana = prompt(
+    "Escribe la semana del informe en formato AAAA-MM-DD.\n\nEjemplo: 2026-05-18\n\nPon el lunes de la semana que quieres."
+  );
+
+  if (!semana) return null;
+
+  const fechaInicio = new Date(semana + "T00:00:00");
+  const fechaFin = new Date(fechaInicio);
+  fechaFin.setDate(fechaInicio.getDate() + 7);
+
+  return { fechaInicio, fechaFin };
+}
+
 async function generarPDF() {
+  const rango = pedirSemana();
+
+  if (!rango) return;
+
+  const { fechaInicio, fechaFin } = rango;
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF();
 
-  const tipos = ["Desayuno", "Almuerzo", "Cena"];
-  let primeraPagina = true;
-
-  tipos.forEach(tipo => {
-    const ticketsTipo = tickets.filter(ticket => ticket.tipo === tipo);
-
-    if (ticketsTipo.length === 0) return;
-
-    if (!primeraPagina) {
-      pdf.addPage();
-    }
-
-    primeraPagina = false;
-
-    let y = 15;
-    let contador = 0;
-
-    pdf.setFontSize(18);
-    pdf.text(tipo, 10, y);
-    y += 10;
-
-    ticketsTipo.forEach(ticket => {
-      if (contador === 6) {
-        pdf.addPage();
-        y = 15;
-        contador = 0;
-        pdf.setFontSize(18);
-        pdf.text(tipo, 10, y);
-        y += 10;
-      }
-
-      pdf.setFontSize(10);
-      pdf.text(ticket.fecha, 10, y);
-      y += 5;
-
-      pdf.addImage(ticket.imagen, "JPEG", 10, y, 55, 35);
-
-      y += 43;
-      contador++;
-    });
+  const ticketsSemana = tickets.filter(ticket => {
+    const fechaTicket = new Date(ticket.fechaISO);
+    return fechaTicket >= fechaInicio && fechaTicket < fechaFin;
   });
 
-  pdf.save("tickets-semana.pdf");
-    }
+  if (ticketsSemana.length === 0) {
+    alert("No hay tickets guardados en esa semana");
+    return;
+  }
+
+  const tipos = ["Desayuno", "Al
