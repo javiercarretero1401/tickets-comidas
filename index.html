@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Archivo de Tickets</title>
 
   <link rel="manifest" href="manifest.json">
+
   <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
@@ -32,9 +38,19 @@
     <label>Tipo de ticket:</label>
 
     <select id="tipo">
-      <option value="Desayuno">Desayuno</option>
-      <option value="Almuerzo">Almuerzo</option>
-      <option value="Cena">Cena</option>
+
+      <option value="Desayuno">
+        Desayuno
+      </option>
+
+      <option value="Almuerzo">
+        Almuerzo
+      </option>
+
+      <option value="Cena">
+        Cena
+      </option>
+
     </select>
 
     <br><br>
@@ -72,7 +88,9 @@
 
   <hr>
 
-  <h2>Tickets de esta semana</h2>
+  <h2 id="zonaTickets">
+    Tickets de esta semana
+  </h2>
 
   <div id="tickets"></div>
 
@@ -81,4 +99,5 @@
   <script src="app.js"></script>
 
 </body>
+
 </html>
