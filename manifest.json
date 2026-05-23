@@ -1,0 +1,9 @@
+{
+  "name": "Tickets Comidas",
+  "short_name": "Tickets",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f2f2f2",
+  "theme_color": "#007bff",
+  "icons": []
+}
