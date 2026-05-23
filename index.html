@@ -1,20 +1,62 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tickets</title>
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+
+    body{
+      background:#1f2326;
+      color:#38e8d0;
+      font-family:Arial;
+      padding:20px;
+    }
+
+    .caja{
+      background:#2b3035;
+      padding:15px;
+      border-radius:15px;
+    }
+
+    select,input,button{
+      width:100%;
+      padding:12px;
+      margin-top:10px;
+      border-radius:10px;
+      border:none;
+      font-size:16px;
+    }
+
+    button{
+      background:#38e8d0;
+      color:black;
+      font-weight:bold;
+    }
+
+    img{
+      width:100%;
+      border-radius:10px;
+      margin-top:10px;
+    }
+
+    .ticket{
+      background:#2b3035;
+      padding:10px;
+      border-radius:15px;
+      margin-top:15px;
+    }
+
+  </style>
+
 </head>
 
 <body>
 
   <h1>Tickets</h1>
 
-  <div class="formulario">
-
-    <label>Tipo</label>
+  <div class="caja">
 
     <select id="tipo">
       <option>Desayuno</option>
@@ -22,41 +64,156 @@
       <option>Cena</option>
     </select>
 
-    <br><br>
-
     <input
       type="file"
-      id="fotoInput"
+      id="foto"
       accept="image/*"
       capture="environment"
     >
 
-    <div id="previewBox" style="display:none;">
+    <img id="preview" style="display:none;">
 
-      <img id="previewFoto">
-
-      <button onclick="eliminarFotoTemporal()">
-        Eliminar foto
-      </button>
-
-    </div>
-
-    <button onclick="guardarTicket()">
+    <button id="guardar">
       Guardar ticket
     </button>
 
   </div>
 
-  <hr>
-
-  <h2 id="zonaTickets">
-    Tickets guardados
-  </h2>
+  <h2>Tickets guardados</h2>
 
   <div id="tickets"></div>
 
-  <script src="app.js"></script>
+<script>
+
+let tickets = JSON.parse(localStorage.getItem("tickets")) || [];
+
+let imagen = "";
+
+const foto = document.getElementById("foto");
+
+foto.addEventListener("change", function(e){
+
+  const archivo = e.target.files[0];
+
+  if(!archivo) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(evento){
+
+    imagen = evento.target.result;
+
+    const preview =
+      document.getElementById("preview");
+
+    preview.src = imagen;
+
+    preview.style.display = "block";
+
+  };
+
+  reader.readAsDataURL(archivo);
+
+});
+
+document
+  .getElementById("guardar")
+  .addEventListener("click", guardarTicket);
+
+function guardarTicket(){
+
+  if(imagen === ""){
+
+    alert("Haz una foto primero");
+
+    return;
+
+  }
+
+  const tipo =
+    document.getElementById("tipo").value;
+
+  const ahora = new Date();
+
+  const ticket = {
+
+    tipo: tipo,
+
+    fecha: ahora.toLocaleDateString(),
+
+    hora: ahora.toLocaleTimeString(),
+
+    imagen: imagen
+
+  };
+
+  tickets.push(ticket);
+
+  localStorage.setItem(
+    "tickets",
+    JSON.stringify(tickets)
+  );
+
+  imagen = "";
+
+  document.getElementById("preview").style.display =
+    "none";
+
+  document.getElementById("foto").value = "";
+
+  alert("✅ Ticket guardado");
+
+  mostrarTickets();
+
+}
+
+function mostrarTickets(){
+
+  const contenedor =
+    document.getElementById("tickets");
+
+  contenedor.innerHTML = "";
+
+  tickets.forEach((ticket,index)=>{
+
+    contenedor.innerHTML += `
+
+      <div class="ticket">
+
+        <h3>${ticket.tipo}</h3>
+
+        <p>${ticket.fecha} ${ticket.hora}</p>
+
+        <img src="${ticket.imagen}">
+
+        <button onclick="eliminar(${index})">
+          Eliminar
+        </button>
+
+      </div>
+
+    `;
+
+  });
+
+}
+
+function eliminar(index){
+
+  tickets.splice(index,1);
+
+  localStorage.setItem(
+    "tickets",
+    JSON.stringify(tickets)
+  );
+
+  mostrarTickets();
+
+}
+
+mostrarTickets();
+
+</script>
 
 </body>
-
 </html>
