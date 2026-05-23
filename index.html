@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tickets Comidas</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+  <h1>Tickets Comidas</h1>
+
+  <div class="formulario">
+
+    <label>Tipo de comida:</label>
+
+    <select id="tipo">
+      <option value="Desayuno">Desayuno</option>
+      <option value="Almuerzo">Almuerzo</option>
+      <option value="Cena">Cena</option>
+    </select>
+
+    <br><br>
+
+    <input type="file"
+           accept="image/*"
+           capture="environment"
+           id="fotoInput">
+
+    <br><br>
+
+    <button onclick="guardarTicket()">
+      Guardar Ticket
+    </button>
+
+    <button onclick="generarPDF()">
+      Generar PDF Semanal
+    </button>
+
+  </div>
+
+  <hr>
+
+  <h2>Tickets guardados</h2>
+
+  <div id="tickets"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="app.js"></script>
+
+</body>
+  </html>
